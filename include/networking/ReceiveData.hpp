@@ -5,6 +5,7 @@
 #include <chrono>
 #include <vector>
 #include <asio.hpp>
+#include <iostream>
 
 using asio::ip::tcp;
 
@@ -47,7 +48,7 @@ public:
         return message;
     }
 
-    void inline stop() {
+    inline void stop() {
         asio::error_code error;
         socket.shutdown(tcp::socket::shutdown_type::shutdown_send, error);
     }
