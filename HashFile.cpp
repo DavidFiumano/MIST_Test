@@ -1,61 +1,299 @@
 #include <string>
 #include <fstream>
+#include <thread>
+#include <chrono>
 
+#include <time.h>
+#include <MIST.pb.h>
 #include <networking/SendData.hpp>
 #include <networking/ReceiveData.hpp>
 #include <MIST.hpp>
 #include <Machine.hpp>
+#include <stdlib.h>
 
-#define FILE_SIZE 600000000
+//TODO .pop_back() protobuf string?
+//std::string message;
+std::string data;
+std::string task;
+std::string firstTwoChars;
+//std::string dump_string;
 
-int main() {
-    std::vector<MIST::Machine> machines_used = { MIST::Machine("local"), MIST::Machine("Helper 1", "192.168.1.3", false), MIST::Machine("Helper 2", "192.168.1.4", false) };
-    auto mist = MIST::MIST(true, machines_used);
+ProtobufMIST::Task _task;
 
-    std::ifstream hash;
-    std::string data1 = "";
-    std::string data2 = "";
-    std::string mydata = "";
-    hash.open("Hash_Me", std::fstream::binary);
-    if(hash.is_open()) {
-        try {
-            std::cout << "Dangerously large file being imported into code" << std::endl;
-            char chunk;
-            int counter = 0;
-            while(hash.get(chunk)) {
-                if(counter < FILE_SIZE / 3) {
-                    data1 += chunk;
-                    counter++;
-                } else if(counter < FILE_SIZE * (2.0f / 3.0f)) {
-                    data2 += chunk;
-                    counter++;
-                } else {
-                    mydata += chunk;
-                    counter++;
-                }
-            }
-        } catch(std::exception& e) {
-            std::cerr << "Error encountered: " << e.what() << std::endl;
+const char d = 182;
+int part;
+
+std::string random_salt(std::string s) {
+    std::cout << "Random salt \n";
+    std::string copy = s;
+    std::string chars = "abcdefghijklmnopqrstufwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12345678910!@#$%^&*()_+-=";
+    for (std::string::iterator i = copy.begin(); i != copy.end(); i++) {
+        srand(time(0));
+        if ((rand() % 100) < 10) {
+            srand(time(0));
+            copy.insert(i, chars.at(rand() % chars.length()));
         }
     }
-    hash.close();
+    return copy;
+}
 
-    std::cout << "data1: " << data1.substr(0, 32) << " data2 " << data2.substr(0, 32) << " mydata " << mydata.substr(0, 32) << std::endl;
-    //std::cout << "Hola" << std::endl;
+std::string add_salt(std::string s) {
+    std::string copy = s;
+    std::cout << "Applying memes \n";
+    for (std::string::iterator i = copy.begin(); i != copy.end(); i++) {
+        if (*i == '6') { // memes
+            
+            copy.insert(i + 1, 'w');
+            copy.insert(i + 2, 'h');
+            copy.insert(i + 3, 'a');
+            copy.insert(i + 4, 't');
+        }
+        else if (*i == 'c' && *i == '9' && *i == 'D') { //c9D
+                                                        //HG6v
+            *i = 'H';
+            copy.insert(i + 1, 'G');
+            copy.insert(i + 2, '6');
+            copy.insert(i + 3, 'v');
+        }
+        else if (tolower(*i) == 'm' && tolower(*(i + 1)) == 'i') { //memes
+            copy.insert(i + 2, 's');
+            copy.insert(i + 3, 't');
+        }
+    }
+    return copy;
+}
 
-    SendData update_first_helper(machines_used[1].address, 612);
-    SendData update_second_helper(machines_used[2].address, 612);
+void hash()
+{
+    data = random_salt(data); //randomly salt
+    data = add_salt(data); //add random chars
+}
 
-    std::cout << "Sent " << update_first_helper.send("00" + data1) << " to " << machines_used[1].name << " and ";
-    std::cout << "sent " << update_second_helper.send("00" + data2) << " to " << machines_used[2].name << std::endl;
+/*int main() {
 
-    ProtobufMIST::Task task;
-    task.task_name = "hash";
-    std::string s;
-    task.SerializeToString(&s);
+    ReceiveData rObj(1025);
+    part = -1;
 
-    std::cout << "Sent " << update_first_helper.send("01" + s) << " to " << machines_used[1].name << " and ";
-    std::cout << "sent " << update_second_helper.send("01" + s) << " to " << machines_used[2].name << std::endl;
+    unsigned long long int it = 0;
+    bool end = false;
+
+    MIST::Task task("hash", *hash);
+
+    std::cout << "Getting role" << std::endl;
+    int i = 0;
+    std::string x;
+    bool atEndOfProgram = false;
+    while(!atEndOfProgram){
+        std::cout << "Loop Starting \n";
+        x = rObj.receive<2>();
+        std::cout << "recieved \n";
+        if (x.at(0) == '1')
+        {
+            part = 1;
+        }
+        else if (x.at(0) == '2') {
+            part = 2;
+        }
+        else {
+            std::cout << "Something dun goofed " << x.at(0) << std::endl;
+        }
+
+        std::cout << "ComputerIsRole " << part << std::endl;
+        if (x.at(1) == '0')
+        {
+            while (!end)
+            {
+                std::string y = rObj.receive<1>();
+            //std::cout << "On it: " << it << " found " << x << std::endl;
+            //if(it % 10000 == 0)
+                std::cout << "Read " << it << " chars so far \n";
+                std::cout << y << std::endl;
+                if (y.find(d) != std::string::npos)
+                    end = true;
+                else
+                    message += y;
+                it += 1;
+            }
+            std::cout << "Data recieved: " << message.size() << std::endl;
+            std::cout << message << std::endl;
+            data = message;
+            message.clear();
+        }
+        end = false;
+        if (x.at(1) == '1')
+        {
+            std::cout << "Task recieved \n";
+            while (!end)
+            {
+                //std::cout << "Task recieved \n";
+                std::string z = rObj.receive<1>();
+                if (z.find(d) != std::string::npos)
+                    end = true;
+                else
+                    message += z;
+                std::string * tempZ = &z;
+                delete tempZ;
+            }
+            end = false;
+            if (_task.ParseFromString(message))
+            {
+                std::cout << "Parsed From String \n";
+            }
+            else {
+                std::cout << "Failure to Parse From String \n";
+            }
+        }
+        std::cout << _task.task_name();
+        if (_task.task_name() == "hash")
+        {
+            std::cout << "Running Hash" << std::endl;
+            task.run();
+            std::cout << "Hash complete" << std::endl;
+        }
+        i++;
+        x.clear();
+    }
+    data = std::to_string(part) + data;
+    std::cout << "Appending part" << std::endl;
+    bool notSent;
+    unsigned int tries = 0;
+    SendData sObj("192.168.1.111", 1026);
+    std::cout << "Returning Data" << std::endl;
+    while(notSent) {
+        if(notSent) {
+            try {
+                sObj.send(data, d);
+                notSent = false;
+            }
+            catch (std::exception& e)
+            {
+                std::this_thread::sleep_for(std::chrono::seconds(1));
+                std::cout << e.what() << std::endl;
+            }
+        }
+        tries++;
+    }
+    std::cout << "Data sent after " << tries << " tries" << std::endl;
+    
+    return 0;
+}*/
+/*int main()
+{
+    //First I would recieve and check what part I am and record that
+    //Second, I would get data
+    int part = -1;
+    ReceiveData rObj(1025);
+    SendData sObj("192.168.1.111", 1026);
+
+    bool isPartSet = false;
+    bool isComplete = false;
+    while (isComplete != true)
+    {
+        firstTwoChars += rObj.receive<1>();
+        std::cout << firstTwoChars.c_str() << std::endl;
+
+        if (firstTwoChars.length() == 1)
+        {
+            if (firstTwoChars == "1")
+            {
+               part = 1;
+               isPartSet = true;
+               std::cout << "Part = 1 \n";
+            }else if (firstTwoChars == "2"){
+               part = 2;
+               isPartSet = true;
+               std::cout << "Part = 2 \n";
+            }
+        }
+        else {
+            if(isPartSet == true && firstTwoChars.length() ) 
+        }
 
     return 0;
+}*/
+
+int main()
+{
+    MIST::Task taskThing("hash", *hash);
+    ReceiveData rObj(1025);
+    SendData sObj("192.168.1.111", 1026);
+
+    std::cout << "Receiving first two chars \n";
+    firstTwoChars = rObj.receive<2>();
+    std::cout << "Received first two chars \n";
+    if (firstTwoChars == "-1")
+    {
+        std::cout << "End of file reached \n";
+        std::abort();
+    }
+    int slavePart;
+    firstTwoChars.pop_back();
+    if (firstTwoChars == "1")
+        slavePart = 1;
+    else if (firstTwoChars == "2")
+        slavePart = 2;
+    else
+        std::cout << "You fucked up, what part is it? \n";
+
+    std::cout << "Is part " << slavePart << std::endl;
+    
+    bool dataRecieved = false;
+    while (!dataRecieved)
+    {
+        //!(data.substr(data.length() - 2) == "-1";
+        std::string chunk = rObj.receive<1>();
+        if (chunk == "-1" || chunk.find((char)182) != std::string::npos) {
+            std::cout << "Data recieved \n";
+            dataRecieved = true;
+            //std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+        else
+        {
+            data += chunk;
+            std::cout << "Added chunk: " << chunk << std::endl;
+        }
+        chunk.clear();
+    }
+    std::cout << "Getting tempstr: \n";
+    std::string temp_str = rObj.receive<2>();
+    std::cout << "Got temp_str \n";
+    std::cout << temp_str << std::endl;
+    bool taskRecieved = false;
+    std::cout << "Starting loop \n";
+    while (taskRecieved == false)
+    {
+        //!(data.substr(data.length() - 2) == "-1";
+        std::string t_chunk = rObj.receive<1>();
+        if (t_chunk == "-1" || t_chunk.find((char)182) != std::string::npos) {
+            std::cout << "task recieved \n";
+            taskRecieved = true;
+            //std::this_thread::sleep_for(std::chrono::seconds(2));
+        }
+        else
+        {
+            task += t_chunk;
+            std::cout << "Added t_chunk: " << t_chunk << std::endl;
+        }
+        t_chunk.clear();
+    }
+    if (_task.ParseFromString(task))
+    {
+        std::cout << "Task parsed properly \n";
+    }
+    else {
+        std::cout << "I fucked up parsing \n";
+        std::abort();
+    }
+    if (_task.task_name() == "hash")
+    {
+        std::cout << "running hash" << std::endl;
+        taskThing.run();
+    }
+    else {
+        std::cout << "Task name is wonky " << _task.task_name() << std::endl;
+        std::abort();
+    }
+    std::cout << "Sending... \n";
+    sObj.send(std::to_string(slavePart)+data, d);
+    std::cout << "Sent! \n";
 }

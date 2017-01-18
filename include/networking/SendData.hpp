@@ -21,7 +21,7 @@ private:
     std::string IP;
     ushort port;
 
-    inline size_t send_string(std::string dataToSend, const char &separator = '\0') {
+    inline size_t send_string(std::string dataToSend, const char &separator = 182) {
         if(!this->socket.is_open()) {
             asio::connect(this->socket, this->endpoint_iterator);
         }
