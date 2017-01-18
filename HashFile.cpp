@@ -284,15 +284,7 @@ int main()
         std::cout << "I fucked up parsing \n";
         std::abort();
     }
-    if (_task.task_name() == "hash")
-    {
-        std::cout << "running hash" << std::endl;
-        taskThing.run();
-    }
-    else {
-        std::cout << "Task name is wonky " << _task.task_name() << std::endl;
-        std::abort();
-    }
+    taskThing.run();
     std::cout << "Sending... \n";
     sObj.send(std::to_string(slavePart)+data, d);
     std::cout << "Sent! \n";
