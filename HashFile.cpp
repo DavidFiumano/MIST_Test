@@ -249,7 +249,7 @@ int main()
         else
         {
             data += chunk;
-            std::cout << "Added chunk: " << chunk << std::endl;
+            //std::cout << "Added chunk: " << chunk << std::endl;
         }
         chunk.clear();
         //delete rObj_data;
@@ -269,9 +269,9 @@ int main()
         std::abort();
     }
 
-    std::cout << "Data parsed \n Data: \n";
-    std::cout << data << std::endl;
-    std::cout << "Task: " << task << std::endl;
+    std::cout << "Data parsed \n";
+    //std::cout << data << std::endl;
+    //std::cout << "Task: " << task << std::endl;
     //bool taskRecieved = false;
     //std::cout << "Starting loop \n";
     /*while (taskRecieved == false)
