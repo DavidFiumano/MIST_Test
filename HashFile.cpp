@@ -21,43 +21,44 @@ std::string firstTwoChars;
 ProtobufMIST::Task _task;
 
 const char d = 182;
+const char d_spc = 185;
 int part;
 
 std::string random_salt(std::string s) {
-    std::cout << "Random salt \n";
-    std::string copy = s;
+    std::string copy = "";
     std::string chars = "abcdefghijklmnopqrstufwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12345678910!@#$%^&*()_+-=";
-    for (std::string::iterator i = copy.begin(); i != copy.end(); i++) {
+    for (std::string::iterator i = s.begin(); i != s.end(); i++) {
+        copy.push_back(*i);
         srand(time(0));
         if ((rand() % 100) < 10) {
             srand(time(0));
-            copy.insert(i, chars.at(rand() % chars.length()));
+            copy.push_back(chars.at(rand() % chars.length()));
         }
     }
     return copy;
 }
 
 std::string add_salt(std::string s) {
-    std::string copy = s;
-    std::cout << "Applying memes \n";
-    for (std::string::iterator i = copy.begin(); i != copy.end(); i++) {
+    std::string copy = "";
+    for (std::string::iterator i = s.begin(); i != s.end(); i++) {
+        copy.push_back(*i);
         if (*i == '6') { // memes
-            
-            copy.insert(i + 1, 'w');
-            copy.insert(i + 2, 'h');
-            copy.insert(i + 3, 'a');
-            copy.insert(i + 4, 't');
+            copy.push_back('w');
+            copy.push_back('h');
+            copy.push_back('a');
+            copy.push_back('t');
         }
         else if (*i == 'c' && *i == '9' && *i == 'D') { //c9D
                                                         //HG6v
-            *i = 'H';
-            copy.insert(i + 1, 'G');
-            copy.insert(i + 2, '6');
-            copy.insert(i + 3, 'v');
+            copy.pop_back();
+            copy.push_back(*i);
+            copy.push_back('G');
+            copy.push_back('6');
+            copy.push_back('v');
         }
         else if (tolower(*i) == 'm' && tolower(*(i + 1)) == 'i') { //memes
-            copy.insert(i + 2, 's');
-            copy.insert(i + 3, 't');
+            copy.push_back('s');
+            copy.push_back('t');
         }
     }
     return copy;
@@ -215,23 +216,21 @@ void hash()
 int main()
 {
     MIST::Task taskThing("hash", *hash);
-    ReceiveData rObj(1025);
-    SendData sObj("192.168.1.111", 1026);
-
-    std::cout << "Receiving first two chars \n";
-    firstTwoChars = rObj.receive<2>();
-    std::cout << "Received first two chars \n";
-    if (firstTwoChars == "-1")
-    {
-        std::cout << "End of file reached \n";
-        std::abort();
-    }
+    ReceiveData * rObj = new ReceiveData(1025);
+    SendData sObj("25.88.220.173", 1027);
+    std::cout << "Receiving first char \n";
+    firstTwoChars = rObj->receive<1>();
+    //delete rObj;
+    std::cout << firstTwoChars << std::endl;
+    std::cout << "Received first char \n";
     int slavePart;
-    firstTwoChars.pop_back();
-    if (firstTwoChars == "1")
+    //firstTwoChars.pop_back();
+    if (firstTwoChars == "1") {
         slavePart = 1;
-    else if (firstTwoChars == "2")
+    }
+    else if (firstTwoChars == "2") {
         slavePart = 2;
+    }
     else
         std::cout << "You fucked up, what part is it? \n";
 
@@ -241,7 +240,8 @@ int main()
     while (!dataRecieved)
     {
         //!(data.substr(data.length() - 2) == "-1";
-        std::string chunk = rObj.receive<1>();
+        //ReceiveData * rObj_data = new ReceiveData(1025);
+        std::string chunk = rObj->receive<1>();
         if (chunk == "-1" || chunk.find((char)182) != std::string::npos) {
             std::cout << "Data recieved \n";
             dataRecieved = true;
@@ -253,14 +253,29 @@ int main()
             std::cout << "Added chunk: " << chunk << std::endl;
         }
         chunk.clear();
+        //delete rObj_data;
     }
-    std::cout << "Getting tempstr: \n";
-    std::string temp_str = rObj.receive<2>();
-    std::cout << "Got temp_str \n";
-    std::cout << temp_str << std::endl;
-    bool taskRecieved = false;
-    std::cout << "Starting loop \n";
-    while (taskRecieved == false)
+    std::cout << "All Data recieved! \n Parsing now \n";
+    
+    if (data.find(d_spc) != std::string::npos)
+    {
+        size_t data_before = data.find(d_spc); //find where data ends and task begins
+        std::cout << "Data found at " << data_before << "bytes. \n";
+        std::string task = data.substr(data_before); //copy task to new string
+        std::cout << "Task copied: " << task << std::endl;
+        data.erase(data_before);//erase everything that was the task from it's original string
+    }
+    else {
+        std::cout << "Did not find d_spc \n";
+        std::abort();
+    }
+
+    std::cout << "Data parsed \n Data: \n";
+    std::cout << data << std::endl;
+    std::cout << "Task: " << task << std::endl;
+    //bool taskRecieved = false;
+    //std::cout << "Starting loop \n";
+    /*while (taskRecieved == false)
     {
         //!(data.substr(data.length() - 2) == "-1";
         std::string t_chunk = rObj.receive<1>();
@@ -275,17 +290,41 @@ int main()
             std::cout << "Added t_chunk: " << t_chunk << std::endl;
         }
         t_chunk.clear();
-    }
+    }*/
+
     if (_task.ParseFromString(task))
     {
         std::cout << "Task parsed properly \n";
     }
     else {
-        std::cout << "I fucked up parsing \n";
-        std::abort();
+        std::cout << "I fucked up parsing, trying again \n";
+        if (_task.ParseFromString(task)) {
+            task.pop_back();
+            std::cout << "Worked the second time! \n";
+        }
+        else {
+            std::cout << "Still fucked up \n";
+            std::abort();
+        }
     }
-    taskThing.run();
+    if(_task.task_name() == "hash")
+        taskThing.run();
+    std::cout << taskThing.getID();
     std::cout << "Sending... \n";
-    sObj.send(std::to_string(slavePart)+data, d);
+    std::this_thread::sleep_for(std::chrono::seconds(20));
+    std::string t_str = std::to_string(slavePart) + data;
+    //while (true)
+    //{
+        try {
+            sObj.send(t_str, d);
+            //break;
+        }
+        catch (std::system_error& e)
+        {
+            std::cout << e.what() << std::endl;
+        }
+    //}
+        int x;
+        std::cin >> x;
     std::cout << "Sent! \n";
 }
