@@ -81,8 +81,33 @@ int main() {
     }
     hash.close();
 
+    std::string one(""), two("");
+    unsigned short port1 = 1026;
+    unsigned short port2 = 1027;
+
+    auto receive_slaves = [=](unsigned short& port, std::string& out) {
+        bool got = false;
+        printf("Looking for string on port %u\n", port);
+        while(!got) {
+            auto slave = new ReceiveData(port);
+            std::string x = slave->receive<1>();
+            printf("Got chunk: %s\n", x.c_str());
+            if(!(x.find((char)182) != std::string::npos || x == "-1")) {
+                out += x;
+            } else {
+                got = true;
+            }
+            delete slave;
+        }
+        printf("Received a full string!\n");
+    };
+
     printf("data1: %s data2: %s mydata: %s", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
 
+    //start waiting in the background without ruining main process
+    printf("Spawning threads...\n");
+    auto t = new std::thread(receive_slaves, std::ref(port1), std::ref(one));
+    auto t2 = new std::thread(receive_slaves, std::ref(port2), std::ref(two));
 
     ProtobufMIST::Task task;
     task.set_task_name("hash");
@@ -106,31 +131,11 @@ int main() {
 
     printf("Old mydata size: %zu\nNew mydata size: %zu\n", mydata.length(), mydata_salted.length());
 
-    std::string one(""), two("");
-    unsigned short port1 = 1026;
-    unsigned short port2 = 1027;
 
-    auto receive_slaves = [=](unsigned short& port, std::string& out) {
-        bool got = false;
-        printf("Looking for string on port %u\n", port);
-        while(!got) {
-            auto slave = new ReceiveData(port);
-            std::string x = slave->receive<1>();
-            printf("Got chunk: %s\n", x.c_str());
-            if(!(x.find((char)182) != std::string::npos || x == "-1")) {
-                out += x;
-            } else {
-                got = true;
-            }
-            delete slave;
-        }
-        printf("Received full string!\n");
-    };
-
-    printf("Openning both receive channels...\n");
-    printf("Waiting for strings...\n");
-    receive_slaves(port2, two);
-    receive_slaves(port1, one);
+    //printf("Openning both receive channels...\n");
+    printf("Waiting for receive threads to exit...\n");
+    t->join();
+    t2->join();
     printf("Received all parts!\n");
 
     printf("Removing delimiters...\n");
