@@ -108,6 +108,8 @@ int main() {
     printf("Spawning threads...\n");
     auto t = new std::thread(receive_slaves, std::ref(port1), std::ref(one));
     auto t2 = new std::thread(receive_slaves, std::ref(port2), std::ref(two));
+    t->detach();
+    t2->detach();
 
     ProtobufMIST::Task task;
     task.set_task_name("hash");
@@ -133,9 +135,7 @@ int main() {
 
 
     //printf("Openning both receive channels...\n");
-    printf("Waiting for receive threads to exit...\n");
-    t->join();
-    t2->join();
+    //printf("Waiting for receive threads to exit...\n");
     printf("Received all parts!\n");
 
     printf("Removing delimiters...\n");
