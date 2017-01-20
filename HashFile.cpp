@@ -311,7 +311,7 @@ int main()
         taskThing.run();
     std::cout << taskThing.getID();
     std::cout << "Sending... \n";
-    std::this_thread::sleep_for(std::chrono::seconds(20));
+    std::this_thread::sleep_for(std::chrono::seconds(1));
     std::string t_str = std::to_string(slavePart) + data;
     //while (true)
     //{
