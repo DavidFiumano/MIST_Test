@@ -2,61 +2,65 @@
 #include <fstream>
 #include <time.h>
 #include <thread>
+#include <chrono>
 
 #include <networking/SendData.hpp>
 #include <networking/ReceiveData.hpp>
 #include <MIST.hpp>
 #include <Machine.hpp>
 
-#define FILE_SIZE 600000000
+#define FILE_SIZE 60
 
 std::string random_salt(std::string s) {
-    std::string copy = s;
+    std::string copy = "";
     std::string chars = "abcdefghijklmnopqrstufwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ12345678910!@#$%^&*()_+-=";
-    for(std::string::iterator i = copy.begin(); i != copy.end(); i++) {
+    for(std::string::iterator i = s.begin(); i != s.end(); i++) {
+        copy.push_back(*i);
         srand(time(0));
         if((rand() % 100) < 10) {
             srand(time(0));
-            copy.insert(i, chars.at(rand() % chars.length()));
+            copy.push_back(chars.at(rand() % chars.length()));
         }
     }
     return copy;
 }
 
 std::string add_salt(std::string s) {
-    std::string copy = s;
-    for(std::string::iterator i = copy.begin(); i != copy.end(); i++) {
+    std::string copy = "";
+    for(std::string::iterator i = s.begin(); i != s.end(); i++) {
+        copy.push_back(*i);
         if(*i == '6') { // memes
-            copy.insert(i + 1, 'w');
-            copy.insert(i + 2, 'h');
-            copy.insert(i + 3, 'a');
-            copy.insert(i + 4, 't');
+            copy.push_back('w');
+            copy.push_back('h');
+            copy.push_back('a');
+            copy.push_back('t');
         } else if(*i == 'c' && *i == '9' && *i == 'D') { //c9D
             //HG6v
-            *i = 'H';
-            copy.insert(i + 1, 'G');
-            copy.insert(i + 2, '6');
-            copy.insert(i + 3, 'v');
+            copy.pop_back();
+            copy.push_back(*i);
+            copy.push_back('G');
+            copy.push_back('6');
+            copy.push_back('v');
         } else if(tolower(*i) == 'm' && tolower(*(i + 1)) == 'i') { //memes
-            copy.insert(i + 2, 's');
-            copy.insert(i + 3, 't');
+            copy.push_back('s');
+            copy.push_back('t');
         }
     }
     return copy;
 }
 
 int main() {
-    std::vector<MIST::Machine> machines_used = { MIST::Machine("local"), MIST::Machine("Helper 1", "192.168.1.137", false), MIST::Machine("Helper 2", "192.168.1.144", false) };
+    std::vector<MIST::Machine> machines_used = { MIST::Machine("local"), MIST::Machine("Helper 1", "25.88.30.47", false), MIST::Machine("Helper 2", "25.88.123.114", false) };
     auto mist = MIST::MIST(true, machines_used);
 
     std::ifstream hash;
     std::string data1 = "";
     std::string data2 = "";
     std::string mydata = "";
-    hash.open("Hash_Me", std::fstream::binary);
+    printf("Dangerously large file being imported into code...\n");
+    hash.open("testfile_smol", std::fstream::binary);
     if(hash.is_open()) {
         try {
-            std::cout << "Dangerously large file being imported into code" << std::endl;
             char chunk;
             int counter = 0;
             while(hash.get(chunk)) {
@@ -77,86 +81,59 @@ int main() {
     }
     hash.close();
 
-    std::cout << "data1: " << data1.substr(0, 32) << " data2 " << data2.substr(0, 32) << " mydata " << mydata.substr(0, 32) << std::endl;
-    //std::cout << "Hola" << std::endl;
+    printf("data1: %s data2: %s mydata: %s", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
 
-    SendData update_second_helper(machines_used[2].address, 1025);
-    SendData update_first_helper(machines_used[1].address, 1025);
-
-
-    std::cout << "Send data!\n";
-    update_first_helper.send("10HFAYM837E6DVJAVFW7QWFMX", (char)182); //TODO: Change back to data1
-    std::cout << "Updated first helper\n";
-
-    update_second_helper.send("209383MDHSKEML09DKCYZ6HZ", (char)182); //TODO: Cange back to data2
-    std::cout << "Updated second helper!\n";
 
     ProtobufMIST::Task task;
     task.set_task_name("hash");
-    std::string s;
-    task.SerializeToString(&s);
-    std::cout << s << std::endl;
+    std::string serialized;
+    task.SerializeToString(&serialized);
 
-    std::cout << "Send tasks!\n";
+    const char c = 185;
 
-    mist.send_task("11" + s, "Helper 1", 1025);
-    std::cout << "Updated first task!\n";
+    printf("Send all!\n");
+    std::string s1 = "1" + data1 + c + serialized;
+    std::string s2 = "2" + data2 + c + serialized;
 
-    mist.send_task("21" + s, "Helper 2", 1025);
-    std::cout << "Updated second task!\n";
 
-    std::string mydata_salted = add_salt(random_salt("HSHXN7591LOOOAPSLDJNTR4")); //TODO: Add pepper
+    mist.send_task(s1, "Helper 1", 1025);
+    printf("Updated first task!\n");
 
-    std::cout << "Old mydata size: " << mydata.length() << std::endl << "New mydata size: " << mydata_salted.length() << std::endl;
+    mist.send_task(s2, "Helper 2", 1025);
+    printf("Updated first task!\n");
+
+    std::string mydata_salted = add_salt(random_salt(mydata)); //TODO: Add pepper
+
+    printf("Old mydata size: %zu\nNew mydata size: %zu\n", mydata.length(), mydata_salted.length());
 
     std::string one(""), two("");
-    ReceiveData slave_strings(1026);
+    unsigned short port1 = 1026;
+    unsigned short port2 = 1027;
 
-    bool both_received;
-    std::array<bool, 2> received = { false, false };
-    char receiving = '\0';
-    std::cout << "Waiting for strings\n";
-    while(!both_received) {
-        if(std::all_of(std::begin(received), std::end(received), [](bool b) { return b; }))
-            both_received = true;
-        else {
-            std::string x = slave_strings.receive<1>();
-            if(receiving == '\0') {
-                if(x == "1" && !received[0]) {
-                    std::cout << "Compiling string from slave 1!" << std::endl;
-                    receiving = '1';
-                } else if(x == "2" && !received[1]) {
-                    std::cout << "Compiling string from slave 2!" << std::endl;
-                    receiving = '2';
-                } else {
-                    std::cout << "Something's gone wrong! Quitting read loop (" << __LINE__ << " " << __FILE__ << ")" << std::endl;
-                    both_received = true;
-                }
-            } else if(receiving == '1') {
-                if(x != "-1" && x.find((char)182) == std::string::npos)
-                    one += x;
-                else {
-                    received[0] = true; // have reached eof
-                    std::cout << "Received 1st part!\n";
-                    receiving = '\0';
-                }
-            } else if(receiving == '2') {
-                if(x != "-1" && x.find((char)182) == std::string::npos)
-                    two += x;
-                else {
-                    received[1] = true;
-                    std::cout << "Received 1nd part!\n";
-                    receiving = '\0';
-                }
+    auto receive_slaves = [=](unsigned short& port, std::string& out) {
+        bool got = false;
+        printf("Looking for string on port %u\n", port);
+        while(!got) {
+            auto slave = new ReceiveData(port);
+            std::string x = slave->receive<1>();
+            printf("Got chunk: %s\n", x.c_str());
+            if(!(x.find((char)182) != std::string::npos || x == "-1")) {
+                out += x;
             } else {
-                receiving = '\0';
+                got = true;
             }
+            delete slave;
         }
-    }
+        printf("Received full string!\n");
+    };
 
-    std::cout << "Received all parts!\n";
+    printf("Openning both receive channels...\n");
+    printf("Waiting for strings...\n");
+    receive_slaves(port2, two);
+    receive_slaves(port1, one);
+    printf("Received all parts!\n");
 
-    std::cout << "Removing delimiters...\n";
+    printf("Removing delimiters...\n");
     one.erase(std::remove(one.begin(), one.end(), (char)182), one.end());
     two.erase(std::remove(two.begin(), two.end(), (char)182), two.end());
 
@@ -165,7 +142,7 @@ int main() {
     output << one << two << mydata_salted;
     output.close();
 
-    std::cout << "Aloha!\n";
+    printf("Aloha!\n");
 
     return 0;
 }

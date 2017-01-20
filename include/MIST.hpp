@@ -63,7 +63,7 @@ namespace MIST {
         void send_task(std::string serialized_task, std::string machine_name, short int port = 8008) {
             for(auto machine : machines) {
                 if(machine.name == machine_name) {
-                    printf("Sending to %s on port %i\n", machine.address.c_str(), port);
+                    printf("Sending task to %s on port %i\n", machine.address.c_str(), port);
                     scheduler->send_task(serialized_task, machine, port);
                 }
             }
