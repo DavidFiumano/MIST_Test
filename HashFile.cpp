@@ -58,7 +58,7 @@ int main() {
     std::string data2 = "";
     std::string mydata = "";
     printf("Dangerously large file being imported into code...\n");
-    hash.open("testfile_smol", std::fstream::binary);
+    hash.open("Hash_Me", std::fstream::binary);
     if(hash.is_open()) {
         try {
             char chunk;
@@ -91,7 +91,7 @@ int main() {
         while(!got) {
             auto slave = new ReceiveData(port);
             std::string x = slave->receive<1>();
-            printf("Got chunk: %s\n", x.c_str());
+            //printf("Got chunk: %s\n", x.c_str());
             if(!(x.find((char)182) != std::string::npos || x == "-1")) {
                 out += x;
             } else {
@@ -136,18 +136,22 @@ int main() {
 
     //printf("Openning both receive channels...\n");
     //printf("Waiting for receive threads to exit...\n");
-    printf("Received all parts!\n");
+    printf("(Hopefully) received all parts!\n");
 
     printf("Removing delimiters...\n");
     one.erase(std::remove(one.begin(), one.end(), (char)182), one.end());
     two.erase(std::remove(two.begin(), two.end(), (char)182), two.end());
+
+    printf("one: %s\ntwo: %s\n", one.substr(0, 10).c_str(), two.substr(0, 10).c_str());
 
     std::ofstream output;
     output.open("Hashed");
     output << one << two << mydata_salted;
     output.close();
 
-    printf("Aloha!\n");
+    printf("Cleaning threads...\n");
+    delete t, t2;
 
+    printf("Aloha!\n");
     return 0;
 }
