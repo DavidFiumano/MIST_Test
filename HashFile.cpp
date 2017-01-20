@@ -217,7 +217,6 @@ int main()
 {
     MIST::Task taskThing("hash", *hash);
     ReceiveData * rObj = new ReceiveData(1025);
-    SendData sObj("25.88.220.173", 1027);
     std::cout << "Receiving first char \n";
     firstTwoChars = rObj->receive<1>();
     //delete rObj;
@@ -312,6 +311,7 @@ int main()
     std::cout << taskThing.getID();
     std::cout << "Sending... \n";
     std::this_thread::sleep_for(std::chrono::seconds(1));
+    SendData sObj("25.97.102.162", 1027);
     std::string t_str = std::to_string(slavePart) + data;
     //while (true)
     //{
