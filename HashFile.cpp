@@ -102,7 +102,7 @@ int main() {
         printf("Received a full string!\n");
     };
 
-    printf("data1: %s data2: %s mydata: %s\n", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
+    printf("data1: %s data2: %s mydata: %s \n", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
 
     //start waiting in the background without ruining main process
     printf("Spawning threads...\n");
