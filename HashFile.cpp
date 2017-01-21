@@ -9,7 +9,7 @@
 #include <MIST.hpp>
 #include <Machine.hpp>
 
-#define FILE_SIZE 60
+#define FILE_SIZE 600000000
 
 std::string random_salt(std::string s) {
     std::string copy = "";
@@ -102,7 +102,7 @@ int main() {
         printf("Received a full string!\n");
     };
 
-    printf("data1: %s data2: %s mydata: %s", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
+    printf("data1: %s data2: %s mydata: %s\n", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
 
     //start waiting in the background without ruining main process
     printf("Spawning threads...\n");
@@ -118,16 +118,18 @@ int main() {
 
     const char c = 185;
 
-    printf("Send all!\n");
+    printf("Sending...\n");
     std::string s1 = "1" + data1 + c + serialized;
     std::string s2 = "2" + data2 + c + serialized;
 
+    auto t3 = new std::thread(&MIST::MIST::send_task, mist, s1, "Helper 1", 1025);
+    auto t4 = new std::thread(&MIST::MIST::send_task, mist, s2, "Helper 2", 1025);
 
-    mist.send_task(s1, "Helper 1", 1025);
-    printf("Updated first task!\n");
+    t3->join();
+    t4->join();
 
-    mist.send_task(s2, "Helper 2", 1025);
-    printf("Updated first task!\n");
+    printf("Sent all!\n");
+    delete t3, t4;
 
     std::string mydata_salted = add_salt(random_salt(mydata)); //TODO: Add pepper
 
