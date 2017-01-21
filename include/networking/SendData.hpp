@@ -16,14 +16,14 @@
 #include <tuple>
 #include <iostream>
 
-#include "SendReceiveConsts.hpp"
+//#include "SendReceiveConsts.hpp"
 
 using asio::ip::tcp;
 typedef unsigned short ushort;
 
 class SendData {
 private:
-    //asio::io_service io;
+    asio::io_service service;
     tcp::resolver resolver;
     tcp::resolver::query query;
     tcp::socket socket;
@@ -37,7 +37,7 @@ private:
             asio::connect(this->socket, this->endpoint_iterator);
         }
 
-        SendReceive::global_io_service.run();
+        service.run();
 
         std::string MISTCompliant = dataToSend;
         MISTCompliant.push_back(separator);
@@ -46,16 +46,16 @@ private:
 
 public:
     SendData(std::string IP, ushort port) //TODO
-        : resolver(SendReceive::global_io_service),
+        : resolver(service),
           query(IP, std::to_string(port)),
-          socket(SendReceive::global_io_service) {
+          socket(service) {
        this->IP = IP;
        this->port = port;
        this->endpoint_iterator = resolver.resolve(this->query);
    }
 
    ~SendData() {
-       //stop(); 
+       //stop();
    }
 
     // EXTREME ASIO WRAPPING!!!

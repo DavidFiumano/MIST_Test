@@ -3,6 +3,7 @@
 #include <time.h>
 #include <thread>
 #include <chrono>
+#include <future>
 
 #include <networking/SendData.hpp>
 #include <networking/ReceiveData.hpp>
@@ -122,18 +123,18 @@ int main() {
     std::string s1 = "1" + data1 + c + serialized;
     std::string s2 = "2" + data2 + c + serialized;
 
+    std::future<std::string> mydata_salted = std::async(add_salt, random_salt(mydata));
     auto t3 = new std::thread(&MIST::MIST::send_task, mist, s1, "Helper 1", 1025);
     auto t4 = new std::thread(&MIST::MIST::send_task, mist, s2, "Helper 2", 1025);
+
 
     t3->join();
     t4->join();
 
-    printf("Sent all!\n");
+    printf("Sent all and hashed!\n");
     delete t3, t4;
 
-    std::string mydata_salted = add_salt(random_salt(mydata)); //TODO: Add pepper
-
-    printf("Old mydata size: %zu\nNew mydata size: %zu\n", mydata.length(), mydata_salted.length());
+    printf("Old mydata size: %zu\nNew mydata size: %zu\n", mydata.length(), mydata_salted.get().length());
 
 
     //printf("Openning both receive channels...\n");
@@ -148,7 +149,7 @@ int main() {
 
     std::ofstream output;
     output.open("Hashed");
-    output << one << two << mydata_salted;
+    output << one << two << mydata_salted.get();
     output.close();
 
     printf("Cleaning threads...\n");

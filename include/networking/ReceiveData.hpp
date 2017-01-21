@@ -6,7 +6,7 @@
 #include <vector>
 #include <asio.hpp>
 #include <iostream>
-#include "SendReceiveConsts.hpp"
+//#include "SendReceiveConsts.hpp"
 
 using asio::ip::tcp;
 
@@ -14,12 +14,12 @@ typedef unsigned short ushort;
 
 class ReceiveData {
 private:
-    //asio::io_service service;
+    asio::io_service service;
     tcp::acceptor acceptor;
     tcp::socket socket;
 public:
-    ReceiveData(ushort port = 8008) : acceptor(SendReceive::global_io_service, tcp::endpoint(tcp::v4(), port)),
-                               socket(SendReceive::global_io_service) { }
+    ReceiveData(ushort port = 8008) : acceptor(service, tcp::endpoint(tcp::v4(), port)),
+                               socket(service) { }
     // Can return any amount on the socket stream
     template<size_t N>
     inline std::string receive() {
@@ -29,7 +29,7 @@ public:
                 this->acceptor.accept(socket);
             }
 
-            SendReceive::global_io_service.run();
+            service.run();
 
             std::array<char, N> buf;
             asio::error_code error;
