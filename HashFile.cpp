@@ -240,7 +240,7 @@ int main()
     {
         //!(data.substr(data.length() - 2) == "-1";
         //ReceiveData * rObj_data = new ReceiveData(1025);
-        std::string chunk = rObj->receive<10313>();
+        std::string chunk = rObj->receive<232>();
         if (chunk == "-1" || chunk.find((char)182) != std::string::npos) {
             std::cout << "Data recieved \n";
             dataRecieved = true;
@@ -254,14 +254,14 @@ int main()
         chunk.clear();
         //delete rObj_data;
     }
-    std::cout << "All Data recieved! \n Parsing now \n";
+    std::cout << "All " << data.length() << " bytes of data recieved! \n Parsing now \n";
     
     if (data.find(d_spc) != std::string::npos)
     {
         size_t data_before = data.find(d_spc); //find where data ends and task begins
         std::cout << "Data found at " << data_before << "bytes. \n";
         std::string task = data.substr(data_before); //copy task to new string
-        std::cout << "Task copied: " << task << std::endl;
+        //std::cout << "Task copied: " << task << std::endl;
         data.erase(data_before);//erase everything that was the task from it's original string
     }
     else {
