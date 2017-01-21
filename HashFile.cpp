@@ -218,7 +218,7 @@ int main()
     MIST::Task taskThing("hash", *hash);
     ReceiveData * rObj = new ReceiveData(1025);
     std::cout << "Receiving first char \n";
-    firstTwoChars = rObj->receive<10313>();
+    firstTwoChars = rObj->receive<1>();
     //delete rObj;
     std::cout << firstTwoChars << std::endl;
     std::cout << "Received first char \n";
@@ -240,7 +240,7 @@ int main()
     {
         //!(data.substr(data.length() - 2) == "-1";
         //ReceiveData * rObj_data = new ReceiveData(1025);
-        std::string chunk = rObj->receive<1>();
+        std::string chunk = rObj->receive<10313>();
         if (chunk == "-1" || chunk.find((char)182) != std::string::npos) {
             std::cout << "Data recieved \n";
             dataRecieved = true;
