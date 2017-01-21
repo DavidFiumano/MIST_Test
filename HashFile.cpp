@@ -9,7 +9,7 @@
 #include <MIST.hpp>
 #include <Machine.hpp>
 
-#define FILE_SIZE 60
+#define FILE_SIZE 600000000
 
 std::string random_salt(std::string s) {
     std::string copy = "";
@@ -102,7 +102,7 @@ int main() {
         printf("Received a full string!\n");
     };
 
-    printf("data1: %s data2: %s mydata: %s", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
+    printf("data1: %s data2: %s mydata: %s \n", data1.substr(0, 10).c_str(), data2.substr(0, 10).c_str(), mydata.substr(0, 10).c_str());
 
     //start waiting in the background without ruining main process
     printf("Spawning threads...\n");
@@ -127,7 +127,7 @@ int main() {
     printf("Updated first task!\n");
 
     mist.send_task(s2, "Helper 2", 1025);
-    printf("Updated first task!\n");
+    printf("Updated second task!\n");
 
     std::string mydata_salted = add_salt(random_salt(mydata)); //TODO: Add pepper
 
