@@ -54,7 +54,9 @@ public:
        this->endpoint_iterator = resolver.resolve(this->query);
    }
 
-   ~SendData() { stop(); }
+   ~SendData() {
+       //stop(); 
+   }
 
     // EXTREME ASIO WRAPPING!!!
     DEPRECATED(void simple_send(std::string data));
