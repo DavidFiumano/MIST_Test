@@ -218,7 +218,7 @@ int main()
     MIST::Task taskThing("hash", *hash);
     ReceiveData * rObj = new ReceiveData(1025);
     std::cout << "Receiving first char \n";
-    firstTwoChars = rObj->receive<1>();
+    firstTwoChars = rObj->receive<10313>();
     //delete rObj;
     std::cout << firstTwoChars << std::endl;
     std::cout << "Received first char \n";
