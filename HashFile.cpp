@@ -71,7 +71,7 @@ int main() {
                 } else if(counter < 400000000) {
                     data2 += chunk;
                     counter++;
-                } else if(counter < 600000000) {
+                } else {
                     mydata += chunk;
                     counter++;
                 }
