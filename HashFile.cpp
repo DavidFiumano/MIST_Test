@@ -51,7 +51,7 @@ std::string add_salt(std::string s) {
 }
 
 int main() {
-    std::vector<MIST::Machine> machines_used = { MIST::Machine("local"), MIST::Machine("Helper 1", "25.88.30.47", false), MIST::Machine("Helper 2", "25.88.123.114", false) };
+    std::vector<MIST::Machine> machines_used = { MIST::Machine("local"), MIST::Machine("Helper 1", "192.168.1.137", false), MIST::Machine("Helper 2", "192.168.1.106", false) };
     auto mist = MIST::MIST(true, machines_used);
 
     std::ifstream hash;
@@ -65,10 +65,10 @@ int main() {
             char chunk;
             int counter = 0;
             while(hash.get(chunk)) {
-                if(counter < FILE_SIZE / 3) {
+                if(counter < 200000000) {
                     data1 += chunk;
                     counter++;
-                } else if(counter < FILE_SIZE * (2.0f / 3.0f)) {
+                } else if(counter < 400000000) {
                     data2 += chunk;
                     counter++;
                 } else {
@@ -118,10 +118,10 @@ int main() {
     task.SerializeToString(&serialized);
 
     const char c = 185;
-
+    const char d_spc = 255;
     printf("Sending...\n");
-    std::string s1 = "1" + data1 + c + serialized;
-    std::string s2 = "2" + data2 + c + serialized;
+    std::string s1 = "1" + data1 + d_spc + serialized;
+    std::string s2 = "2" + data2 + d_spc + serialized;
 
     std::future<std::string> mydata_salted = std::async(add_salt, random_salt(mydata));
     auto t3 = new std::thread(&MIST::MIST::send_task, mist, s1, "Helper 1", 1025);
